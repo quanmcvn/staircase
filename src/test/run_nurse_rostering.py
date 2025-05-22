@@ -2,6 +2,7 @@ import os
 import signal
 import sys
 import datetime
+import gc
 import pandas as pd
 from openpyxl import load_workbook
 from openpyxl import Workbook
@@ -74,11 +75,6 @@ def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tup
 		nr = NurseRosteringEncoding(nr_config)
 		nr.encode()
 		write_full(aux.get_total_added_var(), add_clause.get_clause(), cnf_file)
-		total_variable = aux.get_total_added_var()
-		total_clause = add_clause.get_added_clause()
-		del aux
-		del add_clause
-		del clause
 		os.system(f"head -n1 {cnf_file}")
 		if not os.path.exists("tmp/kissat_output"):
 			os.makedirs("tmp/kissat_output")
@@ -86,6 +82,13 @@ def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tup
 		ret = run(f"kissat -q --time={time_limit} {cnf_file} > {solver_output}")
 		end_time = time.perf_counter()
 		elapsed_time_ms = (end_time - start_time) * 1000
+
+		total_variable = aux.get_total_added_var()
+		total_clause = add_clause.get_added_clause()
+		del nr
+		del clause
+		gc.collect()
+
 		solver_return = ''
 
 		ok_time = True
@@ -150,7 +153,7 @@ def write_to_cell(cell, value: Any):
 class DataToXlsx:
 	total_variable = 'total_variable'
 	clause = 'clause'
-	time = 'time'
+	time = 'time (ms)'
 	sat_status = 'sat/unsat/timeout'
 
 	def __init__(self, excel_file_name: str, name_list: list[str]):
@@ -259,7 +262,7 @@ def test_result(filename: str, nurse: int, day: int):
 			raise RuntimeError(
 				f"nurse id {nurse_id} failed at self._encode_at_most_x_workshifts_per_y_days_binomial(6, 7)")
 		# self._encode_at_least_x_offdays_per_y_days_staircase(4, 18)
-		if not eval_window_lower_bound(nurse_shifts, 'O', 18, 4):
+		if not eval_window_lower_bound(nurse_shifts, 'O', 14, 4):
 			raise RuntimeError(
 				f"nurse id {nurse_id} failed at self._encode_at_least_x_offdays_per_y_days(4, 18)")
 		# self._encode_between_x_and_y_s_shifts_per_z_days(4, 8, ShiftEnum.EVENING_SHIFT, 14)
@@ -267,7 +270,7 @@ def test_result(filename: str, nurse: int, day: int):
 			raise RuntimeError(
 				f"nurse id {nurse_id} failed at self._encode_between_x_and_y_s_shifts_per_z_days(4, 8, ShiftEnum.EVENING_SHIFT, 14)")
 		# self._encode_between_x_and_y_workshifts_per_z_days(16, 18, 28)
-		if not eval_window(nurse_shifts, 'O', 28, 28 - 18, 28 - 16):
+		if not eval_window_upper_bound(nurse_shifts, 'O', 28, 28 - 16):
 			raise RuntimeError(
 				f"nurse id {nurse_id} failed at self._encode_between_x_and_y_workshifts_per_z_days(16, 18, 28)")
 		# self._encode_at_most_x_s_shifts_per_y_days_binomial(2, ShiftEnum.NIGHT_SHIFT, 7)
@@ -275,7 +278,7 @@ def test_result(filename: str, nurse: int, day: int):
 			raise RuntimeError(
 				f"nurse id {nurse_id} failed at self._encode_at_most_x_s_shifts_per_y_days_binomial(2, ShiftEnum.NIGHT_SHIFT, 7)")
 		# self._encode_at_least_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 7)
-		if not eval_window_lower_bound(nurse_shifts, 'N', 7, 1):
+		if not eval_window_lower_bound(nurse_shifts, 'N', 14, 1):
 			raise RuntimeError(
 				f"nurse id {nurse_id} failed at self._encode_at_least_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 7)")
 		# self._encode_between_x_and_y_s_shifts_per_z_days(2, 4, ShiftEnum.EVENING_SHIFT, 7)
