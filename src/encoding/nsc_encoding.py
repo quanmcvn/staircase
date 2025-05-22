@@ -37,6 +37,9 @@ class NSCEncoding(BaselineEncoding):
 			# 	for j in myrange_inclusive(1, min(i, k)):
 			# 		print(f"r[{i}][{j}] = {self._r[i - 1][j - 1]}")
 
+		def __exit__(self):
+			del self._r
+
 		def get_n(self) -> int:
 			return self._n
 
