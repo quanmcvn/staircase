@@ -270,7 +270,7 @@ def test_result(filename: str, nurse: int, day: int):
 			raise RuntimeError(
 				f"nurse id {nurse_id} failed at self._encode_between_x_and_y_s_shifts_per_z_days(4, 8, ShiftEnum.EVENING_SHIFT, 14)")
 		# self._encode_between_x_and_y_workshifts_per_z_days(16, 18, 28)
-		if not eval_window_upper_bound(nurse_shifts, 'O', 28, 28 - 19):
+		if not eval_window_upper_bound(nurse_shifts, 'O', 28, 28 - 20):
 			raise RuntimeError(
 				f"nurse id {nurse_id} failed at self._encode_between_x_and_y_workshifts_per_z_days(16, 18, 28)")
 		# self._encode_at_most_x_s_shifts_per_y_days_binomial(2, ShiftEnum.NIGHT_SHIFT, 7)
@@ -293,8 +293,8 @@ def test_result(filename: str, nurse: int, day: int):
 
 
 def main():
-	# to_test: list[str] = ["staircase", "pblib_bdd", "pblib_card"]
-	to_test: list[str] = ["staircase"]
+	to_test: list[str] = ["staircase", "pblib_bdd", "pblib_card"]
+	# to_test: list[str] = ["staircase"]
 	time_now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 	nks = get_all_number_in_file("input_nurse_rostering.txt")
 	excel_file_name = f"results_nurse_rostering_{time_now}.xlsx"
