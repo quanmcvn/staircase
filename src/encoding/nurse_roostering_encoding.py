@@ -123,29 +123,8 @@ class NurseRosteringEncoding:
 		self._encode_at_least_x_s_shifts_per_y_days(days - workshifts, ShiftEnum.OFF_DAY, days)
 
 	def _encode_at_least_x_workshift_per_y_days(self, workshifts: int, days: int):
-		if self.config.encoding_type == 'staircase':
-			for nurse in myrange_inclusive(1, self.config.nurses):
-				var = [not_(self.nurse_variable.get_nurse_days_shift(nurse, j, ShiftEnum.OFF_DAY.value[0])) 
-           				for j in myrange_inclusive(1, self.config.days)]
-				encoder = StaircaseEncoding()
-				encoder.encode_staircase_at_least(var, days, workshifts, self.config.aux, self.config.add_clause)
-		elif self.config.encoding_type == 'pblib_bdd':
-			for nurse in myrange_inclusive(1, self.config.nurses):
-				for i in myrange_inclusive(1, self.config.days - days + 1):
-					var = [not_(self.nurse_variable.get_nurse_days_shift(nurse, i + j, ShiftEnum.OFF_DAY.value[0]))
-					        for j in range(days)]
-					encoder = PBLibEncoding(pypblib.pblib.PBConfig(pypblib.pblib.AMK_BDD))
-					encoder.encode_at_least_k(var, workshifts, self.config.aux, self.config.add_clause)
-		elif self.config.encoding_type == 'pblib_card':
-			for nurse in myrange_inclusive(1, self.config.nurses):
-				for i in myrange_inclusive(1, self.config.days - days + 1):
-					var = [not_(self.nurse_variable.get_nurse_days_shift(nurse, i + j, ShiftEnum.OFF_DAY.value[0]))
-					       for j in range(days)]
-					encoder = PBLibEncoding(pypblib.pblib.PBConfig(pypblib.pblib.AMK_CARD))
-					encoder.encode_at_least_k(var, workshifts, self.config.aux, self.config.add_clause)
-		else:
-			raise RuntimeError(f"_encode_at_least_x_s_shifts_per_y_days: unregconized type {self.config.encoding_type}")
-
+		# at least x workshifts per y days = at most y - x offdays per y days
+		self._encode_at_most_x_s_shifts_per_y_days_using_at_least(days - workshifts, ShiftEnum.OFF_DAY, days)
 
 	def _encode_between_x_and_y_s_shifts_per_z_days(self, lower_bound_s_shifts: int,
 	                                                upper_bound_s_shifts: int, shift: ShiftEnum,
