@@ -311,9 +311,11 @@ def test_result(filename: str, nurse: int, day: int):
 
 
 def main():
-	encoding_strategies: list[NRP_Encoding_Strategy_Enum] = [NRP_Encoding_Strategy_Enum.STAIRCASE,
-                                                          NRP_Encoding_Strategy_Enum.PBLIB_BDD,
-                                                          NRP_Encoding_Strategy_Enum.PBLIB_CARD]
+	# encoding_strategies: list[NRP_Encoding_Strategy_Enum] = [NRP_Encoding_Strategy_Enum.STAIRCASE,
+    #                                                       NRP_Encoding_Strategy_Enum.PBLIB_BDD,
+    #                                                       NRP_Encoding_Strategy_Enum.PBLIB_CARD]
+    
+	encoding_strategies: list[NRP_Encoding_Strategy_Enum] = [NRP_Encoding_Strategy_Enum.PYSAT_CARD]
  
 	time_now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 	nks = get_all_number_in_file("input_nurse_rostering.txt")
