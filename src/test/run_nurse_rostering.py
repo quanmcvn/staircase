@@ -76,10 +76,17 @@ def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tup
 		nr.encode()
 		write_full(aux.get_total_added_var(), add_clause.get_clause(), cnf_file)
 		os.system(f"head -n1 {cnf_file}")
-		if not os.path.exists("tmp/kissat_output"):
-			os.makedirs("tmp/kissat_output")
-		solver_output = f"tmp/kissat_output/output_{cannon_name}.txt"
+		solver_output = f"tmp/output_{cannon_name}.txt"
+  
+		# For kissat solver
 		ret = run(f"./kissat -q --time={time_limit} {cnf_file} > {solver_output}")
+
+		# For Cadical solver
+		# ret = run(f"./cadical -q -t {time_limit} {cnf_file} > {solver_output}")
+  
+		# For Glucose solver
+		# ret = run(f"./glucose-syrup -cpu-lim={time_limit} -nthreads=8 -verb=0 {cnf_file} {solver_output}")
+  
 		end_time = time.perf_counter()
 		elapsed_time_ms = (end_time - start_time) * 1000
 
@@ -94,7 +101,7 @@ def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tup
 		ok_time = True
 		if ret == 2560:  # SAT
 			solver_return = 'SAT'
-			test_result(solver_output, nurse, day)
+			# test_result(solver_output, nurse, day)
 		elif ret == 5120:  # UNSAT
 			print("UNSAT")
 			solver_return = 'UNSAT'
