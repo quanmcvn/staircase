@@ -4,14 +4,7 @@ from src.encoding.binomial_encoding import BinomialEncoding
 from src.encoding.pblib_encoding import PBLibEncoding
 from src.encoding.staircase_encoding import StaircaseEncoding
 from src.include.common import AuxVariable, AddClause, myrange_inclusive, not_
-from enum import Enum
-
-
-class ShiftEnum(Enum):
-	DAY_SHIFT = 0,
-	EVENING_SHIFT = 1,
-	NIGHT_SHIFT = 2,
-	OFF_DAY = 3,
+from src.encoding.NRP.shift_enum import ShiftEnum
 
 
 class NurseRosteringConfig:
@@ -67,6 +60,7 @@ class NurseRosteringEncoding:
 				encoder.encode_staircase_at_least(var, days, days - upper_bound, self.config.aux,
 				                                  self.config.add_clause)
 				del var
+				del encoder
 		elif self.config.encoding_type == 'pblib_bdd':
 			for nurse in myrange_inclusive(1, self.config.nurses):
 				for i in myrange_inclusive(1, self.config.days - days + 1):
