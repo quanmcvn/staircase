@@ -14,7 +14,7 @@ import time
 from datetime import datetime
 from typing import Any
 
-from src.encoding.nurse_roostering_encoding import NurseRosteringEncoding, NurseRosteringConfig
+from encoding.NRP.nurse_roostering_encoding import NurseRosteringEncoding, NurseRosteringConfig
 from src.encoding.staircase_encoding import StaircaseEncoding
 from src.include.addline import write_full
 from src.include.common import myrange_inclusive, cl, AuxVariable, AddClause
