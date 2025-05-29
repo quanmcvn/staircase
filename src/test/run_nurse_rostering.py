@@ -84,6 +84,9 @@ def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tup
 		start_solving_time = time.perf_counter()
 		# For kissat solver
 		ret = run(f"./kissat -q --time={time_limit} {cnf_file} > {solver_output}")
+  
+		# For kissat in 2024 competition
+		# ret = run(f"./kissat_compe_2024 --time={time_limit} {cnf_file} > {solver_output}")
 
 		# For Cadical solver
 		# ret = run(f"./cadical -q -t {time_limit} {cnf_file} > {solver_output}")
