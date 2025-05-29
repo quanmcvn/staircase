@@ -3,21 +3,18 @@ import signal
 import sys
 import datetime
 import gc
-import pandas as pd
-from openpyxl import load_workbook
 from openpyxl import Workbook
-from openpyxl.cell import Cell
 from openpyxl.styles import Alignment
-from zipfile import BadZipFile
-from openpyxl.utils.dataframe import dataframe_to_rows
 import time
 from datetime import datetime
 from typing import Any
 
-from encoding.NRP.nurse_roostering_encoding import NurseRosteringEncoding, NurseRosteringConfig
-from src.encoding.staircase_encoding import StaircaseEncoding
+from src.encoding.NRP.nurse_roostering_encoding import NurseRosteringEncoding
+from src.encoding.NRP.nrp_config import NurseRosteringConfig
+from src.encoding.NRP.strategy_nrp_encoding.nrp_encoding_strategy_enum import NRP_Encoding_Strategy_Enum
+
 from src.include.addline import write_full
-from src.include.common import myrange_inclusive, cl, AuxVariable, AddClause
+from src.include.common import AuxVariable, AddClause
 
 
 def handler(signum, frame):
@@ -56,14 +53,15 @@ def eval_window_upper_bound(x: str, value: str, window_size: int, cap: int):
 	return eval_window(x, value, window_size, None, cap)
 
 
-def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tuple[float | None, str, int, int]:
+def run_nurse_rostering(encoding_strategy: NRP_Encoding_Strategy_Enum, nurse: int, day: int, time_limit: int) -> tuple[float | None, str, int, int]:
 	signal.signal(signal.SIGALRM, handler)
 	signal.alarm(time_limit)
-	cannon_name = f"nurse_rostering_{name}"
-	if not os.path.exists("tmp"):
-		os.makedirs("tmp")
-	cnf_file = f"tmp/{cannon_name}.cnf"
-	print(f"{name} {nurse} {day}")
+	cannon_name = f"NRP_{nurse}_{day}_{encoding_strategy}"
+	if not os.path.exists("cnf"):
+		os.makedirs("cnf")
+	cnf_file = f"cnf/{cannon_name}.cnf"
+	print("------------------------Problem infomation------------------------")
+	print(f"NRP: {nurse} nurse(s), {day} day(s) with {str(encoding_strategy)} strategy.")
 	aux = AuxVariable(1)
 	clause = []
 	add_clause = AddClause(clause)
@@ -71,12 +69,12 @@ def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tup
 	total_clause = -1
 	try:
 		start_encoding_time = time.perf_counter()
-		nr_config = NurseRosteringConfig(nurse, day, aux, add_clause, name)
-		nr = NurseRosteringEncoding(nr_config)
-		nr.encode()
+		nrp_config = NurseRosteringConfig(nurse, day, aux, add_clause, encoding_strategy)
+		nrp_encoding = NurseRosteringEncoding(nrp_config)
+		nrp_encoding.encode()
 		write_full(aux.get_total_added_var(), add_clause.get_clause(), cnf_file)
 		os.system(f"head -n1 {cnf_file}")
-		solver_output = f"tmp/output_{cannon_name}.txt"
+		solver_output = f"cnf/output_{cannon_name}.txt"
   
 		end_encoding_time = time.perf_counter()
 		encoding_elapsed_time_ms = (end_encoding_time - start_encoding_time) * 1000
@@ -101,7 +99,7 @@ def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tup
 
 		total_variable = aux.get_total_added_var()
 		total_clause = add_clause.get_added_clause()
-		del nr
+		del nrp_encoding
 		del clause
 		gc.collect()
 
@@ -110,17 +108,18 @@ def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tup
 		ok_time = True
 		if ret == 2560:  # SAT
 			solver_return = 'SAT'
-			# test_result(solver_output, nurse, day)
+			test_result(solver_output, nurse, day)
 		elif ret == 5120:  # UNSAT
 			print("UNSAT")
 			solver_return = 'UNSAT'
 		else:
 			if ret == 0:  # timeout
 				ok_time = False
-
-		print(f"Encoding elapsed time: {encoding_elapsed_time_ms:.2f} ms")
-		print(f"Solving elapsed time: {solving_elapsed_time_ms:.2f} (ms)")
-		print(f"Total elapsed time: {total_elapsed_time_ms:.2f} (ms)") 
+		print("------------------------Solving Properties------------------------")
+		print(f"Encoding elapsed time: 		{encoding_elapsed_time_ms:.2f} ms")
+		print(f"Solving elapsed time: 		{solving_elapsed_time_ms:.2f} (ms)")
+		print(f"Total elapsed time: 		{total_elapsed_time_ms:.2f} (ms)") 
+		print("------------------------------------------------\n")
 		if ok_time:
 			return total_elapsed_time_ms, solver_return, total_variable, total_clause
 		else:
@@ -174,7 +173,7 @@ class DataToXlsx:
 	time = 'time (ms)'
 	sat_status = 'sat/unsat/timeout'
 
-	def __init__(self, excel_file_name: str, name_list: list[str]):
+	def __init__(self, excel_file_name: str, encoding_strategies: list[NRP_Encoding_Strategy_Enum]):
 		if not os.path.exists("out/excel"):
 			os.makedirs("out/excel")
 		self.excel_file_name = "out/excel/" + excel_file_name
@@ -205,14 +204,14 @@ class DataToXlsx:
 		write_to_cell(self.sheet.cell(2, 1), 'nurse')
 		write_to_cell(self.sheet.cell(2, 2), 'day')
 
-		for i in range(len(name_list)):
+		for i in range(len(encoding_strategies)):
 			y: int = len(self.row_dict) + 1 + i * 4
-			self.name_to_column[name_list[i]] = y
+			self.name_to_column[encoding_strategies[i]] = y
 			self.sheet.merge_cells(f"{pos_2d_to_pos_excel(1, y)}:{pos_2d_to_pos_excel(1, y + 3)}")
-			write_to_cell(self.sheet.cell(1, y), name_list[i])
+			write_to_cell(self.sheet.cell(1, y), str(encoding_strategies[i]))
 			for name_offset, offset in self.offset_dict.items():
 				write_to_cell(self.sheet.cell(2, y + offset), name_offset)
-			self.row_dict[name_list[i]] = 3
+			self.row_dict[encoding_strategies[i]] = 3
 		self.book.save(self.excel_file_name)
 
 	def get_column(self, name: str) -> int:
@@ -307,30 +306,33 @@ def test_result(filename: str, nurse: int, day: int):
 		if not eval_window_upper_bound(nurse_shifts, 'N', 2, 1):
 			raise RuntimeError(
 				f"nurse id {nurse_id} failed at self._encode_at_most_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 2)")
-	print("ok")
+	print("------------------------Result Verification------------------------")
+	print("Verification passed! All constraints satisfied.")
 
 
 def main():
-	to_test: list[str] = ["staircase"]
-	# to_test: list[str] = ["staircase"]
+	encoding_strategies: list[NRP_Encoding_Strategy_Enum] = [NRP_Encoding_Strategy_Enum.STAIRCASE,
+                                                          NRP_Encoding_Strategy_Enum.PBLIB_BDD,
+                                                          NRP_Encoding_Strategy_Enum.PBLIB_CARD]
+ 
 	time_now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 	nks = get_all_number_in_file("input_nurse_rostering.txt")
 	excel_file_name = f"results_nurse_rostering_{time_now}.xlsx"
-	writer: DataToXlsx = DataToXlsx(excel_file_name, to_test)
+	writer: DataToXlsx = DataToXlsx(excel_file_name, encoding_strategies)
 	timeout = 600
 	for nk in nks:
 		nurse = nk[0]
 		day = nk[1] * 7
 		writer.write_more('nurse', {'nurse': nurse})
 		writer.write_more('day', {'day': day})
-		for name in to_test:
+		for encoding_strategy in encoding_strategies:
 			result_dict: dict[str, str | int | float] = {
 				DataToXlsx.total_variable: "",
 				DataToXlsx.clause: "",
 				DataToXlsx.time: "",
 				DataToXlsx.sat_status: ""
 			}
-			elapsed_time_ms, solver_return, num_var, num_clause = run_nurse_rostering(name, nurse, day, timeout)
+			elapsed_time_ms, solver_return, num_var, num_clause = run_nurse_rostering(encoding_strategy, nurse, day, timeout)
 			if elapsed_time_ms is None:
 				result_dict[DataToXlsx.time] = "timeout"
 			else:
@@ -343,7 +345,7 @@ def main():
 				result_dict[DataToXlsx.clause] = num_clause
 				result_dict[DataToXlsx.sat_status] = solver_return
 
-			writer.write_more(name, result_dict)
+			writer.write_more(encoding_strategy, result_dict)
 		print()
 	pass
 
