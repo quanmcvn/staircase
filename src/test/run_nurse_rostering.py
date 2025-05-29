@@ -70,7 +70,7 @@ def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tup
 	total_variable = -1
 	total_clause = -1
 	try:
-		start_time = time.perf_counter()
+		start_encoding_time = time.perf_counter()
 		nr_config = NurseRosteringConfig(nurse, day, aux, add_clause, name)
 		nr = NurseRosteringEncoding(nr_config)
 		nr.encode()
@@ -78,6 +78,10 @@ def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tup
 		os.system(f"head -n1 {cnf_file}")
 		solver_output = f"tmp/output_{cannon_name}.txt"
   
+		end_encoding_time = time.perf_counter()
+		encoding_elapsed_time_ms = (end_encoding_time - start_encoding_time) * 1000
+  
+		start_solving_time = time.perf_counter()
 		# For kissat solver
 		ret = run(f"./kissat -q --time={time_limit} {cnf_file} > {solver_output}")
 
@@ -87,8 +91,10 @@ def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tup
 		# For Glucose solver
 		# ret = run(f"./glucose-syrup -cpu-lim={time_limit} -nthreads=8 -verb=0 {cnf_file} {solver_output}")
   
-		end_time = time.perf_counter()
-		elapsed_time_ms = (end_time - start_time) * 1000
+		end_solving_time = time.perf_counter()
+		solving_elapsed_time_ms = (end_solving_time - start_solving_time) * 1000
+
+		total_elapsed_time_ms = encoding_elapsed_time_ms + solving_elapsed_time_ms
 
 		total_variable = aux.get_total_added_var()
 		total_clause = add_clause.get_added_clause()
@@ -109,9 +115,11 @@ def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tup
 			if ret == 0:  # timeout
 				ok_time = False
 
-		print(f"took {elapsed_time_ms:.2f} (ms)")
+		print(f"Encoding elapsed time: {encoding_elapsed_time_ms:.2f} ms")
+		print(f"Solving elapsed time: {solving_elapsed_time_ms:.2f} (ms)")
+		print(f"Total elapsed time: {total_elapsed_time_ms:.2f} (ms)") 
 		if ok_time:
-			return elapsed_time_ms, solver_return, total_variable, total_clause
+			return total_elapsed_time_ms, solver_return, total_variable, total_clause
 		else:
 			return None, 'timeout', total_variable, total_clause
 	except TimeoutError as te:
@@ -300,7 +308,7 @@ def test_result(filename: str, nurse: int, day: int):
 
 
 def main():
-	to_test: list[str] = ["staircase", "pblib_bdd", "pblib_card"]
+	to_test: list[str] = ["staircase"]
 	# to_test: list[str] = ["staircase"]
 	time_now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 	nks = get_all_number_in_file("input_nurse_rostering.txt")
