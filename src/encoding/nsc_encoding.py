@@ -158,7 +158,7 @@ class NSCEncoding(BaselineEncoding):
 				# print(f"not r[{i - 1}][{j - 1}] -> not r[{i}][{j}]")
 				self.add_clause.add(self.g.r(i - 1, j - 1), self.g.not_r(i, j))
 
-	def encode_ensure_at_most_k(self, x_np1: int):
+	def encode_ensure_at_most_k(self, x_np1: int | None):
 		# for i: k + 1 -> n:
 		#   x[i] -> not r[i-1][k]
 		# x[n + 1] -> r[n][k]
@@ -167,7 +167,8 @@ class NSCEncoding(BaselineEncoding):
 			return
 		for i in myrange_inclusive(self.g.get_k() + 1, self.g.get_n()):
 			self.add_clause.add(self.g.not_x(i), self.g.not_r(i - 1, self.g.get_k()))
-		self.add_clause.add(not_(x_np1), self.g.not_r(self.g.get_n(), self.g.get_k()))
+		if x_np1 is not None:
+			self.add_clause.add(not_(x_np1), self.g.not_r(self.g.get_n(), self.g.get_k()))
 
 	def encode_ensure_at_least_k(self, k: int):
 		if k <= self.g.get_k():
@@ -185,9 +186,6 @@ class NSCEncoding(BaselineEncoding):
 			self.add_clause.add(self.g.r(self.g.get_n(), k - 1))
 
 	def build(self, var: list[int], upper_bound: int, aux: AuxVariable, add_clause: AddClause):
-		n = len(var)
-		if n <= 0:
-			return
 		# if upper_bound > n:
 		# 	upper_bound = n
 		self.g = NSCEncoding.GetVariableNSC(var, upper_bound, aux)

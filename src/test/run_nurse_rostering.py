@@ -79,7 +79,7 @@ def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tup
 		if not os.path.exists("tmp/kissat_output"):
 			os.makedirs("tmp/kissat_output")
 		solver_output = f"tmp/kissat_output/output_{cannon_name}.txt"
-		ret = run(f"kissat -q --time={time_limit} {cnf_file} > {solver_output}")
+		ret = run(f"kissat -q {cnf_file} > {solver_output}")
 		end_time = time.perf_counter()
 		elapsed_time_ms = (end_time - start_time) * 1000
 
@@ -257,38 +257,24 @@ def test_result(filename: str, nurse: int, day: int):
 		nurse_shifts = ''
 		for shift in chosen_list[nurse_id]:
 			nurse_shifts += shift
-		# self._encode_at_most_x_workshifts_per_y_days_binomial(6, 7)
 		if not eval_window_lower_bound(nurse_shifts, 'O', 7, 7 - 6):
-			raise RuntimeError(
-				f"nurse id {nurse_id} failed at self._encode_at_most_x_workshifts_per_y_days_binomial(6, 7)")
-		# self._encode_at_least_x_offdays_per_y_days_staircase(4, 18)
+			raise RuntimeError(	f"nurse id {nurse_id} failed")
 		if not eval_window_lower_bound(nurse_shifts, 'O', 14, 4):
-			raise RuntimeError(
-				f"nurse id {nurse_id} failed at self._encode_at_least_x_offdays_per_y_days(4, 18)")
-		# self._encode_between_x_and_y_s_shifts_per_z_days(4, 8, ShiftEnum.EVENING_SHIFT, 14)
+			raise RuntimeError(	f"nurse id {nurse_id} failed")
 		if not eval_window(nurse_shifts, 'E', 14, 4, 8):
-			raise RuntimeError(
-				f"nurse id {nurse_id} failed at self._encode_between_x_and_y_s_shifts_per_z_days(4, 8, ShiftEnum.EVENING_SHIFT, 14)")
-		# self._encode_between_x_and_y_workshifts_per_z_days(16, 18, 28)
+			raise RuntimeError(	f"nurse id {nurse_id} failed")
 		if not eval_window_upper_bound(nurse_shifts, 'O', 28, 28 - 16):
-			raise RuntimeError(
-				f"nurse id {nurse_id} failed at self._encode_between_x_and_y_workshifts_per_z_days(16, 18, 28)")
-		# self._encode_at_most_x_s_shifts_per_y_days_binomial(2, ShiftEnum.NIGHT_SHIFT, 7)
-		if not eval_window_upper_bound(nurse_shifts, 'N', 7, 2):
-			raise RuntimeError(
-				f"nurse id {nurse_id} failed at self._encode_at_most_x_s_shifts_per_y_days_binomial(2, ShiftEnum.NIGHT_SHIFT, 7)")
-		# self._encode_at_least_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 7)
-		if not eval_window_lower_bound(nurse_shifts, 'N', 14, 1):
-			raise RuntimeError(
-				f"nurse id {nurse_id} failed at self._encode_at_least_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 7)")
-		# self._encode_between_x_and_y_s_shifts_per_z_days(2, 4, ShiftEnum.EVENING_SHIFT, 7)
+			raise RuntimeError(	f"nurse id {nurse_id} failed")
+		# if not eval_window_upper_bound(nurse_shifts, 'N', 14, 4):
+		# 	raise RuntimeError(	f"nurse id {nurse_id} failed")
+		# if not eval_window_lower_bound(nurse_shifts, 'N', 14, 1):
+		# 	raise RuntimeError(	f"nurse id {nurse_id} failed")
+		if not eval_window(nurse_shifts, 'N', 14, 1, 4):
+			raise RuntimeError(	f"nurse id {nurse_id} failed")
 		if not eval_window(nurse_shifts, 'E', 7, 2, 4):
-			raise RuntimeError(
-				f"nurse id {nurse_id} failed at self._encode_between_x_and_y_s_shifts_per_z_days(2, 4, ShiftEnum.EVENING_SHIFT, 7)")
-		# self._encode_at_most_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 2)
+			raise RuntimeError(	f"nurse id {nurse_id} failed")
 		if not eval_window_upper_bound(nurse_shifts, 'N', 2, 1):
-			raise RuntimeError(
-				f"nurse id {nurse_id} failed at self._encode_at_most_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 2)")
+			raise RuntimeError(	f"nurse id {nurse_id} failed")
 	print("ok")
 
 

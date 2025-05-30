@@ -54,18 +54,19 @@ class StaircaseEncoding:
 				self.upper_part = None
 				self.lower_part = NSCEncoding(False)
 				# temp = add_clause.get_added_clause()
-				print(f"cap floor: {cap}, {floor}")
-				self.lower_part.build(var_now[::-1][:-1], cap, aux, add_clause)
-				self.lower_part.encode_ensure_at_least_k_with_x_np1(floor, var_now[0])
-				self.lower_part.encode_ensure_at_most_k(var_now[0])
+				# print(f"cap floor: {cap}, {floor}")
+				self.lower_part.build(var_now[::-1], cap, aux, add_clause)
+				# self.lower_part.encode_ensure_at_most_k(var_now[0])
+				self.lower_part.encode_ensure_at_most_k(None)
+				self.lower_part.encode_ensure_at_least_k(floor)
 				# print(add_clause.get_added_clause() - temp)
 			elif window_num == num_window - 1:  # last window, no lower_part
 				self.upper_part = NSCEncoding()
 				self.lower_part = None
-				self.upper_part.build(var_now[:-1], cap, aux, add_clause)
-				if len(var_now) == window_size:
-					self.upper_part.encode_ensure_at_least_k_with_x_np1(floor, var_now[0])
-				self.upper_part.encode_ensure_at_most_k(var_now[0])
+				self.upper_part.build(var_now, cap, aux, add_clause)
+				if len(var) == num_window:
+					self.upper_part.encode_ensure_at_least_k(floor)
+				self.upper_part.encode_ensure_at_most_k(None)
 			else:
 				self.upper_part = NSCEncoding(True)
 				self.lower_part = NSCEncoding(False)
@@ -77,9 +78,9 @@ class StaircaseEncoding:
 				#        6 |
 				# we need 6 <= k, then 5 6 <= k, then 4 5 6 <= k
 				self.upper_part.build(var_now[:-1], cap, aux, add_clause)
-				self.lower_part.build(var_now[::-1][:-1], cap, aux, add_clause)
-				self.lower_part.encode_ensure_at_least_k_with_x_np1(floor, var_now[0])
-				self.lower_part.encode_ensure_at_most_k(var_now[0])
+				self.lower_part.build(var_now[::-1], cap, aux, add_clause)
+				self.lower_part.encode_ensure_at_most_k(None)
+				self.lower_part.encode_ensure_at_least_k(floor)
 
 		def encode_window_at_least(self, var: list[int], window_num: int, window_size: int, floor: int, num_window: int, aux: AuxVariable, add_clause: AddClause):
 			# w windows (window_size, floor), w - 2 windows (window_size - 1, floor)
@@ -201,7 +202,6 @@ class StaircaseEncoding:
 				# print(f"left: {left_var_for_step} {cap-j-1}, right: {right_var_for_step} {j}")
 				# print(f"left: {left_formula}, right: {right_formula}")
 				if len(left_formula) > 0 and len(right_formula) > 0:
-					print(f"i: {i}, j: {j}")
 					for _ in left_formula:
 						current_formula.append(_)
 					for _ in right_formula:
@@ -232,7 +232,7 @@ class StaircaseEncoding:
 			only_left = None
 			only_right = None
 			both_left_right = []
-			# print(f"l_r: {left_var_for_step}, {right_var_for_step}")
+			# print(f"at_least: l_r: {left_var_for_step}, {right_var_for_step}")
 			for j in myrange_inclusive(1, floor):
 				current_formula = []
 				left_formula = left.get_at_least_n_k(left_var_for_step, j)
@@ -268,6 +268,10 @@ class StaircaseEncoding:
 		for window_num in range(0, self.num_window - 1):
 			self.__glue_window_at_least(window_num)
 
+	def _do_glue_at_most(self):
+		for window_num in range(0, self.num_window - 1):
+			self.__glue_window_at_most(window_num)
+
 	def encode_staircase(self, var: list[int], window_size: int, cap: int, aux: AuxVariable, add_clause: AddClause):
 		self.var = var
 		self.n = len(var)
@@ -299,27 +303,13 @@ class StaircaseEncoding:
 		self.windows = []
 
 		# (n / w - 1) * ...
-		print(f"range w, cap: {get_calc_clause_range(window_size, cap)}")
-		print(f"range w-1, cap: {get_calc_clause_build(window_size - 1, cap)}")
 		for window_num in range(0, self.num_window):
-			prev = add_clause.get_added_clause()
-			print(f"encode window: {window_num}")
-			print(f"prev: {prev}")
 			self.__encode_window(window_num)
-			nex = add_clause.get_added_clause()
-			print(f"next: {nex}, aug: {nex - prev}")
 
 		# (n / w - 1) * ...
 		self._do_glue_at_least()
 
-		# (n / w - 1) * ...
-		for window_num in range(0, self.num_window - 1):
-			prev = add_clause.get_added_clause()
-			# print(f"glue_window_at_most: {window_num}")
-			# print(f"prev: {prev}")
-			self.__glue_window_at_most(window_num)
-			nex = add_clause.get_added_clause()
-			# print(f"next: {nex}, aug: {nex - prev}")
+		self._do_glue_at_most()
 
 		# variable: 2n cap − 2w cap + cap^2 − cap + 2 + (n cap − n cap^2 − 2n) / w
 		# clause: 9n cap + n floor − 2n + 2w − 9w cap - w floor + 4cap^2 + 5cap + floor + 1 − (4n cap^2 + 5n cap + n floor + n) / w

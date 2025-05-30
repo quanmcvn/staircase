@@ -132,20 +132,29 @@ class NurseRosteringEncoding:
 		if self.config.encoding_type == 'staircase':
 			# at least x s shift per z days
 			# at most y s shift per z days = at least not z - y s shift per z days
+			# for nurse in myrange_inclusive(1, self.config.nurses):
+			# 	var = [(self.nurse_variable.get_nurse_days_shift(nurse, j, shift.value[0])) for j in
+			# 	       myrange_inclusive(1, self.config.days)]
+			# 	encoder = StaircaseEncoding()
+			# 	encoder.encode_staircase_at_least(var, days, lower_bound_s_shifts, self.config.aux,
+			# 	                                  self.config.add_clause)
+			# 	del var
+			# for nurse in myrange_inclusive(1, self.config.nurses):
+			# 	var = [not_(self.nurse_variable.get_nurse_days_shift(nurse, j, shift.value[0])) for j in
+			# 	       myrange_inclusive(1, self.config.days)]
+			# 	encoder = StaircaseEncoding()
+			# 	encoder.encode_staircase_at_least(var, days, days - upper_bound_s_shifts, self.config.aux,
+			# 	                                  self.config.add_clause)
+			# 	del var
+			#
 			for nurse in myrange_inclusive(1, self.config.nurses):
 				var = [(self.nurse_variable.get_nurse_days_shift(nurse, j, shift.value[0])) for j in
 				       myrange_inclusive(1, self.config.days)]
 				encoder = StaircaseEncoding()
-				encoder.encode_staircase_at_least(var, days, lower_bound_s_shifts, self.config.aux,
+				encoder.encode_staircase_range(var, days, lower_bound_s_shifts, upper_bound_s_shifts, self.config.aux,
 				                                  self.config.add_clause)
 				del var
-			for nurse in myrange_inclusive(1, self.config.nurses):
-				var = [not_(self.nurse_variable.get_nurse_days_shift(nurse, j, shift.value[0])) for j in
-				       myrange_inclusive(1, self.config.days)]
-				encoder = StaircaseEncoding()
-				encoder.encode_staircase_at_least(var, days, days - upper_bound_s_shifts, self.config.aux,
-				                                  self.config.add_clause)
-				del var
+
 		elif self.config.encoding_type == 'pblib_bdd':
 			for nurse in myrange_inclusive(1, self.config.nurses):
 				for i in myrange_inclusive(1, self.config.days - days + 1):
@@ -215,7 +224,8 @@ class NurseRosteringEncoding:
 		self._encode_at_least_x_s_shifts_per_y_days(4, ShiftEnum.OFF_DAY, 14)
 		self._encode_between_x_and_y_s_shifts_per_z_days(4, 8, ShiftEnum.EVENING_SHIFT, 14)
 		self._encode_at_least_x_workshift_per_y_days(20, 28)
-		self._encode_at_most_x_s_shifts_per_y_days_binomial(2, ShiftEnum.NIGHT_SHIFT, 7)
-		self._encode_at_least_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 14)
+		# self._encode_at_most_x_s_shifts_per_y_days_using_at_least(4, ShiftEnum.NIGHT_SHIFT, 14)
+		# self._encode_at_least_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 14)
+		self._encode_between_x_and_y_s_shifts_per_z_days(1, 4, ShiftEnum.NIGHT_SHIFT, 14)
 		self._encode_between_x_and_y_s_shifts_per_z_days(2, 4, ShiftEnum.EVENING_SHIFT, 7)
 		self._encode_at_most_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 2)
