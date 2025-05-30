@@ -21,7 +21,7 @@ class NurseRosteringConfig:
 		self.aux = aux
 		self.add_clause = add_clause
 		self.encoding_type = encoding_type
-		if encoding_type not in ['staircase', 'pblib_bdd', 'pblib_card']:
+		if encoding_type not in ['staircase_at_least', 'staircase_among', 'pblib_bdd', 'pblib_card']:
 			raise RuntimeError(f"NurseRosteringConfig: unrecognized encoding type {encoding_type}")
 
 
@@ -59,7 +59,7 @@ class NurseRosteringEncoding:
 		del self.nurse_variable
 
 	def _encode_at_most_x_s_shifts_per_y_days_using_at_least(self, upper_bound: int, shift: ShiftEnum, days: int):
-		if self.config.encoding_type == 'staircase':
+		if self.config.encoding_type in ['staircase_at_least', 'staircase_among']:
 			for nurse in myrange_inclusive(1, self.config.nurses):
 				var = [not_(self.nurse_variable.get_nurse_days_shift(nurse, j, shift.value[0])) for j in
 				       myrange_inclusive(1, self.config.days)]
@@ -90,7 +90,7 @@ class NurseRosteringEncoding:
 				f"_encode_at_most_x_s_shifts_per_y_days_using_at_least: unregconized type {self.config.encoding_type}")
 
 	def _encode_at_least_x_s_shifts_per_y_days(self, lower_bound: int, shift: ShiftEnum, days: int):
-		if self.config.encoding_type == 'staircase':
+		if self.config.encoding_type in ['staircase_at_least', 'staircase_among']:
 			for nurse in myrange_inclusive(1, self.config.nurses):
 				var = [(self.nurse_variable.get_nurse_days_shift(nurse, j, shift.value[0])) for j in
 				       myrange_inclusive(1, self.config.days)]
@@ -129,24 +129,24 @@ class NurseRosteringEncoding:
 	def _encode_between_x_and_y_s_shifts_per_z_days(self, lower_bound_s_shifts: int,
 	                                                upper_bound_s_shifts: int, shift: ShiftEnum,
 	                                                days):
-		if self.config.encoding_type == 'staircase':
+		if self.config.encoding_type == 'staircase_at_least':
 			# at least x s shift per z days
 			# at most y s shift per z days = at least not z - y s shift per z days
-			# for nurse in myrange_inclusive(1, self.config.nurses):
-			# 	var = [(self.nurse_variable.get_nurse_days_shift(nurse, j, shift.value[0])) for j in
-			# 	       myrange_inclusive(1, self.config.days)]
-			# 	encoder = StaircaseEncoding()
-			# 	encoder.encode_staircase_at_least(var, days, lower_bound_s_shifts, self.config.aux,
-			# 	                                  self.config.add_clause)
-			# 	del var
-			# for nurse in myrange_inclusive(1, self.config.nurses):
-			# 	var = [not_(self.nurse_variable.get_nurse_days_shift(nurse, j, shift.value[0])) for j in
-			# 	       myrange_inclusive(1, self.config.days)]
-			# 	encoder = StaircaseEncoding()
-			# 	encoder.encode_staircase_at_least(var, days, days - upper_bound_s_shifts, self.config.aux,
-			# 	                                  self.config.add_clause)
-			# 	del var
-			#
+			for nurse in myrange_inclusive(1, self.config.nurses):
+				var = [(self.nurse_variable.get_nurse_days_shift(nurse, j, shift.value[0])) for j in
+				       myrange_inclusive(1, self.config.days)]
+				encoder = StaircaseEncoding()
+				encoder.encode_staircase_at_least(var, days, lower_bound_s_shifts, self.config.aux,
+				                                  self.config.add_clause)
+				del var
+			for nurse in myrange_inclusive(1, self.config.nurses):
+				var = [not_(self.nurse_variable.get_nurse_days_shift(nurse, j, shift.value[0])) for j in
+				       myrange_inclusive(1, self.config.days)]
+				encoder = StaircaseEncoding()
+				encoder.encode_staircase_at_least(var, days, days - upper_bound_s_shifts, self.config.aux,
+				                                  self.config.add_clause)
+				del var
+		elif self.config.encoding_type == 'staircase_among':
 			for nurse in myrange_inclusive(1, self.config.nurses):
 				var = [(self.nurse_variable.get_nurse_days_shift(nurse, j, shift.value[0])) for j in
 				       myrange_inclusive(1, self.config.days)]

@@ -279,7 +279,7 @@ def test_result(filename: str, nurse: int, day: int):
 
 
 def main():
-	to_test: list[str] = ["staircase", "pblib_bdd", "pblib_card"]
+	to_test: list[str] = ["staircase_at_least", "staircase_among", "pblib_card"]
 	time_now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 	nks = get_all_number_in_file("input_nurse_rostering.txt")
 	excel_file_name = f"results_nurse_rostering_{time_now}.xlsx"
