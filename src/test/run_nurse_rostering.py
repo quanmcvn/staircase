@@ -81,16 +81,16 @@ def run_nurse_rostering(encoding_strategy: NRP_Encoding_Strategy_Enum, nurse: in
   
 		start_solving_time = time.perf_counter()
 		# For kissat solver
-		ret = run(f"./kissat -q --time={time_limit} {cnf_file} > {solver_output}")
+		ret = run(f"./src/sat_solvers/kissat -q --time={time_limit} {cnf_file} > {solver_output}")
   
 		# For kissat in 2024 competition
-		# ret = run(f"./kissat_compe_2024 --time={time_limit} {cnf_file} > {solver_output}")
+		# ret = run(f"./src/sat_solvers/kissat_compe_2024 --time={time_limit} {cnf_file} > {solver_output}")
 
 		# For Cadical solver
-		# ret = run(f"./cadical -q -t {time_limit} {cnf_file} > {solver_output}")
+		# ret = run(f"./src/sat_solvers/cadical -q -t {time_limit} {cnf_file} > {solver_output}")
   
 		# For Glucose solver
-		# ret = run(f"./glucose-syrup -cpu-lim={time_limit} -nthreads=8 -verb=0 {cnf_file} {solver_output}")
+		# ret = run(f"./src/sat_solvers/glucose-syrup -cpu-lim={time_limit} -nthreads=8 -verb=0 {cnf_file} {solver_output}")
   
 		end_solving_time = time.perf_counter()
 		solving_elapsed_time_ms = (end_solving_time - start_solving_time) * 1000
