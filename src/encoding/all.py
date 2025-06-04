@@ -2,6 +2,7 @@ from enum import Enum, auto
 from typing import Callable
 
 from pypblib import pblib
+from pysat.pb import EncType
 
 from src.encoding.binary_encoding import BinaryEncoding
 from src.encoding.binomial_encoding import BinomialEncoding
@@ -11,6 +12,7 @@ from src.encoding.pblib_encoding import PBLibEncoding
 from src.encoding.product_encoding import ProductEncoding
 from src.encoding.sc_encoding import SCEncoding
 from src.encoding.at_most_seq_card_encoding import AtMostSeqCard
+from src.encoding.pblib_encoding_pysat import PBLibCardEncodingPysat
 from src.include.common import AuxVariable, AddClause
 
 
@@ -24,6 +26,7 @@ class EncodingType(Enum):
 	PBLIB_ADD = auto()
 	PBLIB_BDD = auto()
 	PBLIB_CARD = auto()
+	PBLIB_CARD_PYSAT = auto()
 	AT_MOST_SEQ_CARD_SEQUENTIAL_COUNTER = auto()
 
 
@@ -46,6 +49,8 @@ def str_to_type_enum(encoding_type: str) -> EncodingType:
 		return EncodingType.PBLIB_BDD
 	if "pblib_card" in encoding_type:
 		return EncodingType.PBLIB_CARD
+	if "pblib_card_pysat" in encoding_type:
+		return EncodingType.PBLIB_CARD_PYSAT
 	if "at_most_seq_card" in encoding_type:
 		return EncodingType.AT_MOST_SEQ_CARD_SEQUENTIAL_COUNTER
 	raise RuntimeError(f"No such encoding: {encoding_type}")
@@ -77,30 +82,44 @@ class Encoder:
 			config = pblib.PBConfig()
 			config.set_AMK_Encoder(pblib.AMK_CARD)
 			self.internal_encoder = PBLibEncoding(config)
+		elif encoding_type == EncodingType.PBLIB_CARD_PYSAT:
+			self.internal_encoder = PBLibCardEncodingPysat()
 		elif encoding_type == EncodingType.AT_MOST_SEQ_CARD_SEQUENTIAL_COUNTER:
 			self.internal_encoder = AtMostSeqCard.SequentialCounter()
 		else:
 			raise RuntimeError(f"No such encoding: {encoding_type}")
 
-	def encode_at_most_k(self, var: list[int], k: int, first_new_var: int, formula: list[list[int]]) -> int:
+	def encode_at_most_k(self, var: list[int], k: int, aux: AuxVariable, add_clause: AddClause):
+		self.internal_encoder.encode_at_most_k(var, k, aux, add_clause)
+
+	def encode_at_least_k(self, var: list[int], k: int, aux: AuxVariable, add_clause: AddClause):
+		self.internal_encoder.encode_at_least_k(var, k, aux, add_clause)
+
+	def encode_exactly_k(self, var: list[int], k: int, aux: AuxVariable, add_clause: AddClause):
+		self.internal_encoder.encode_exactly_k(var, k, aux, add_clause)
+
+	def encode_range(self, var: list[int], k: int, m: int, aux: AuxVariable, add_clause: AddClause):
+		self.internal_encoder.encode_range(var, k, m, aux, add_clause)
+
+	def encode_at_most_k_raw(self, var: list[int], k: int, first_new_var: int, formula: list[list[int]]) -> int:
 		aux = AuxVariable(first_new_var)
 		add_clause = AddClause(formula)
 		self.internal_encoder.encode_at_most_k(var, k, aux, add_clause)
 		return aux.get_total_added_var()
 
-	def encode_at_least_k(self, var: list[int], k: int, first_new_var: int, formula: list[list[int]]) -> int:
+	def encode_at_least_k_raw(self, var: list[int], k: int, first_new_var: int, formula: list[list[int]]) -> int:
 		aux = AuxVariable(first_new_var)
 		add_clause = AddClause(formula)
 		self.internal_encoder.encode_at_least_k(var, k, aux, add_clause)
 		return aux.get_total_added_var()
 
-	def encode_exactly_k(self, var: list[int], k: int, first_new_var: int, formula: list[list[int]]) -> int:
+	def encode_exactly_k_raw(self, var: list[int], k: int, first_new_var: int, formula: list[list[int]]) -> int:
 		aux = AuxVariable(first_new_var)
 		add_clause = AddClause(formula)
 		self.internal_encoder.encode_exactly_k(var, k, aux, add_clause)
 		return aux.get_total_added_var()
 
-	def encode_range(self, var: list[int], k: int, m: int, first_new_var: int, formula: list[list[int]]) -> int:
+	def encode_range_raw(self, var: list[int], k: int, m: int, first_new_var: int, formula: list[list[int]]) -> int:
 		aux = AuxVariable(first_new_var)
 		add_clause = AddClause(formula)
 		self.internal_encoder.encode_range(var, k, m, aux, add_clause)
@@ -116,11 +135,11 @@ class Encoder:
 
 	def get_normal_encode_function(self, encode_type: str) -> Callable[[list[int], int, int, list[list[int]]], int]:
 		if "amk" in encode_type or "at_most_k" in encode_type:
-			return self.encode_at_most_k
+			return self.encode_at_most_k_raw
 		if "alk" in encode_type or "at_least_k" in encode_type:
-			return self.encode_at_least_k
+			return self.encode_at_least_k_raw
 		if "ek" in encode_type or "exactly_k" in encode_type:
-			return self.encode_exactly_k
+			return self.encode_exactly_k_raw
 		if "hybrid" in encode_type:
 			return Encoder.encode_hybrid
 		raise RuntimeError(f"Encoder: no such function: {encode_type}")

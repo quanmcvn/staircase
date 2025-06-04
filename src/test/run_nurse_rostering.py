@@ -59,7 +59,7 @@ def eval_window_upper_bound(x: str, value: str, window_size: int, cap: int):
 def run_nurse_rostering(name: str, nurse: int, day: int, time_limit: int) -> tuple[float | None, str, int, int]:
 	signal.signal(signal.SIGALRM, handler)
 	signal.alarm(time_limit)
-	cannon_name = f"nurse_rostering_{name}"
+	cannon_name = f"nurse_rostering_{name}_{nurse}_{day}"
 	if not os.path.exists("tmp"):
 		os.makedirs("tmp")
 	cnf_file = f"tmp/{cannon_name}.cnf"
@@ -279,7 +279,7 @@ def test_result(filename: str, nurse: int, day: int):
 
 
 def main():
-	to_test: list[str] = ["staircase_at_least", "staircase_among", "pblib_card"]
+	to_test: list[str] = ["staircase_among", "pblib_card", "pblib_card_pysat"]
 	time_now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 	nks = get_all_number_in_file("input_nurse_rostering.txt")
 	excel_file_name = f"results_nurse_rostering_{time_now}.xlsx"

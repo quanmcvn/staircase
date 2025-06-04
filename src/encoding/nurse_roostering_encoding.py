@@ -1,5 +1,6 @@
 import pypblib.pblib
 
+from src.encoding.all import Encoder, str_to_type_enum
 from src.encoding.binomial_encoding import BinomialEncoding
 from src.encoding.pblib_encoding import PBLibEncoding
 from src.encoding.staircase_encoding import StaircaseEncoding
@@ -21,7 +22,7 @@ class NurseRosteringConfig:
 		self.aux = aux
 		self.add_clause = add_clause
 		self.encoding_type = encoding_type
-		if encoding_type not in ['staircase_at_least', 'staircase_among', 'pblib_bdd', 'pblib_card']:
+		if encoding_type not in ['staircase_at_least', 'staircase_among', 'pblib_bdd', 'pblib_card', 'pblib_card_pysat']:
 			raise RuntimeError(f"NurseRosteringConfig: unrecognized encoding type {encoding_type}")
 
 
@@ -67,21 +68,12 @@ class NurseRosteringEncoding:
 				encoder.encode_staircase_at_least(var, days, days - upper_bound, self.config.aux,
 				                                  self.config.add_clause)
 				del var
-		elif self.config.encoding_type == 'pblib_bdd':
+		elif self.config.encoding_type in ['pblib_bdd', 'pblib_card', 'pblib_card_pysat']:
 			for nurse in myrange_inclusive(1, self.config.nurses):
 				for i in myrange_inclusive(1, self.config.days - days + 1):
 					var = [(self.nurse_variable.get_nurse_days_shift(nurse, i + j, shift.value[0]))
 					       for j in range(days)]
-					encoder = PBLibEncoding(pypblib.pblib.PBConfig(pypblib.pblib.AMK_BDD))
-					encoder.encode_at_most_k(var, upper_bound, self.config.aux, self.config.add_clause)
-					del encoder
-					del var
-		elif self.config.encoding_type == 'pblib_card':
-			for nurse in myrange_inclusive(1, self.config.nurses):
-				for i in myrange_inclusive(1, self.config.days - days + 1):
-					var = [(self.nurse_variable.get_nurse_days_shift(nurse, i + j, shift.value[0]))
-					       for j in range(days)]
-					encoder = PBLibEncoding(pypblib.pblib.PBConfig(pypblib.pblib.AMK_CARD))
+					encoder = Encoder(str_to_type_enum(self.config.encoding_type))
 					encoder.encode_at_most_k(var, upper_bound, self.config.aux, self.config.add_clause)
 					del encoder
 					del var
@@ -97,21 +89,12 @@ class NurseRosteringEncoding:
 				encoder = StaircaseEncoding()
 				encoder.encode_staircase_at_least(var, days, lower_bound, self.config.aux, self.config.add_clause)
 				del var
-		elif self.config.encoding_type == 'pblib_bdd':
+		elif self.config.encoding_type in ['pblib_bdd', 'pblib_card', 'pblib_card_pysat']:
 			for nurse in myrange_inclusive(1, self.config.nurses):
 				for i in myrange_inclusive(1, self.config.days - days + 1):
 					var = [(self.nurse_variable.get_nurse_days_shift(nurse, i + j, shift.value[0]))
 					       for j in range(days)]
-					encoder = PBLibEncoding(pypblib.pblib.PBConfig(pypblib.pblib.AMK_BDD))
-					encoder.encode_at_least_k(var, lower_bound, self.config.aux, self.config.add_clause)
-					del encoder
-					del var
-		elif self.config.encoding_type == 'pblib_card':
-			for nurse in myrange_inclusive(1, self.config.nurses):
-				for i in myrange_inclusive(1, self.config.days - days + 1):
-					var = [(self.nurse_variable.get_nurse_days_shift(nurse, i + j, shift.value[0]))
-					       for j in range(days)]
-					encoder = PBLibEncoding(pypblib.pblib.PBConfig(pypblib.pblib.AMK_CARD))
+					encoder = Encoder(str_to_type_enum(self.config.encoding_type))
 					encoder.encode_at_least_k(var, lower_bound, self.config.aux, self.config.add_clause)
 					del encoder
 					del var
@@ -154,23 +137,12 @@ class NurseRosteringEncoding:
 				encoder.encode_staircase_range(var, days, lower_bound_s_shifts, upper_bound_s_shifts, self.config.aux,
 				                                  self.config.add_clause)
 				del var
-
-		elif self.config.encoding_type == 'pblib_bdd':
+		elif self.config.encoding_type in ['pblib_bdd', 'pblib_card', 'pblib_card_pysat']:
 			for nurse in myrange_inclusive(1, self.config.nurses):
 				for i in myrange_inclusive(1, self.config.days - days + 1):
 					var = [(self.nurse_variable.get_nurse_days_shift(nurse, i + j, shift.value[0]))
 					       for j in range(days)]
-					encoder = PBLibEncoding(pypblib.pblib.PBConfig(pypblib.pblib.AMK_BDD))
-					encoder.encode_range(var, lower_bound_s_shifts, upper_bound_s_shifts, self.config.aux,
-					                     self.config.add_clause)
-					del var
-					del encoder
-		elif self.config.encoding_type == 'pblib_card':
-			for nurse in myrange_inclusive(1, self.config.nurses):
-				for i in myrange_inclusive(1, self.config.days - days + 1):
-					var = [(self.nurse_variable.get_nurse_days_shift(nurse, i + j, shift.value[0]))
-					       for j in range(days)]
-					encoder = PBLibEncoding(pypblib.pblib.PBConfig(pypblib.pblib.AMK_CARD))
+					encoder = Encoder(str_to_type_enum(self.config.encoding_type))
 					encoder.encode_range(var, lower_bound_s_shifts, upper_bound_s_shifts, self.config.aux,
 					                     self.config.add_clause)
 					del var
