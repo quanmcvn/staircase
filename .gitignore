@@ -1,4 +1,7 @@
 .vscode/
+.idea/
 out/
 tmp/
 venv/
+input*.txt
+/inputs/
