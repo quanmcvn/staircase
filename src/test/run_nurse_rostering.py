@@ -40,10 +40,12 @@ def eval_window(x: str, value: str, window_size: int, floor, cap):
 	for i in range(0, len(x)):
 		if i >= window_size:
 			if not (floor <= now <= cap):
+				print(f"failed at {i}")
 				return False
 			now -= 1 if x[i - window_size] == value else 0
 		now += 1 if x[i] == value else 0
 	if not (floor <= now <= cap):
+		print(f"failed at end")
 		return False
 	return True
 
@@ -257,24 +259,25 @@ def test_result(filename: str, nurse: int, day: int):
 		nurse_shifts = ''
 		for shift in chosen_list[nurse_id]:
 			nurse_shifts += shift
+		# print(f"nurse {nurse_id}: {nurse_shifts}")
 		if not eval_window_lower_bound(nurse_shifts, 'O', 7, 7 - 6):
-			raise RuntimeError(	f"nurse id {nurse_id} failed")
+			raise RuntimeError(f"nurse id {nurse_id} failed")
 		if not eval_window_lower_bound(nurse_shifts, 'O', 14, 4):
-			raise RuntimeError(	f"nurse id {nurse_id} failed")
+			raise RuntimeError(f"nurse id {nurse_id} failed")
 		if not eval_window(nurse_shifts, 'E', 14, 4, 8):
-			raise RuntimeError(	f"nurse id {nurse_id} failed")
+			raise RuntimeError(f"nurse id {nurse_id} failed")
 		if not eval_window_upper_bound(nurse_shifts, 'O', 28, 28 - 16):
-			raise RuntimeError(	f"nurse id {nurse_id} failed")
+			raise RuntimeError(f"nurse id {nurse_id} failed")
 		# if not eval_window_upper_bound(nurse_shifts, 'N', 14, 4):
-		# 	raise RuntimeError(	f"nurse id {nurse_id} failed")
+		# 	raise RuntimeError(f"nurse id {nurse_id} failed")
 		# if not eval_window_lower_bound(nurse_shifts, 'N', 14, 1):
-		# 	raise RuntimeError(	f"nurse id {nurse_id} failed")
+		# 	raise RuntimeError(f"nurse id {nurse_id} failed")
 		if not eval_window(nurse_shifts, 'N', 14, 1, 4):
-			raise RuntimeError(	f"nurse id {nurse_id} failed")
+			raise RuntimeError(f"nurse id {nurse_id} failed")
 		if not eval_window(nurse_shifts, 'E', 7, 2, 4):
-			raise RuntimeError(	f"nurse id {nurse_id} failed")
+			raise RuntimeError(f"nurse id {nurse_id} failed")
 		if not eval_window_upper_bound(nurse_shifts, 'N', 2, 1):
-			raise RuntimeError(	f"nurse id {nurse_id} failed")
+			raise RuntimeError(f"nurse id {nurse_id} failed")
 	print("ok")
 
 

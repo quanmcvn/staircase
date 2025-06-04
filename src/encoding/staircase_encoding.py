@@ -64,7 +64,7 @@ class StaircaseEncoding:
 				self.upper_part = NSCEncoding()
 				self.lower_part = None
 				self.upper_part.build(var_now, cap, aux, add_clause)
-				if len(var) == num_window:
+				if len(var_now) == window_size:
 					self.upper_part.encode_ensure_at_least_k(floor)
 				self.upper_part.encode_ensure_at_most_k(None)
 			else:
