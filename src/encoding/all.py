@@ -47,10 +47,10 @@ def str_to_type_enum(encoding_type: str) -> EncodingType:
 		return EncodingType.PBLIB_ADD
 	if "pblib_bdd" in encoding_type:
 		return EncodingType.PBLIB_BDD
-	if "pblib_card" in encoding_type:
-		return EncodingType.PBLIB_CARD
 	if "pblib_card_pysat" in encoding_type:
 		return EncodingType.PBLIB_CARD_PYSAT
+	if "pblib_card" in encoding_type:
+		return EncodingType.PBLIB_CARD
 	if "at_most_seq_card" in encoding_type:
 		return EncodingType.AT_MOST_SEQ_CARD_SEQUENTIAL_COUNTER
 	raise RuntimeError(f"No such encoding: {encoding_type}")
