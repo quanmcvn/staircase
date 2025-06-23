@@ -1,4 +1,5 @@
 from src.include.common import AuxVariable
+from src.encoding.NRP.nrp_shift_enum import is_valid_shift
 
 class NurseRosteringVariable:
 	def __init__(self, nurses: int, days: int, aux: AuxVariable):
@@ -24,6 +25,6 @@ class NurseRosteringVariable:
 			raise RuntimeError(f"NurseRosteringVariable: nurse is {nurse} but max nurse {len(self.nurse)}")
 		if not (1 <= day <= len(self.nurse[0])):
 			raise RuntimeError(f"NurseRosteringVariable: day is {day} but max day {len(self.nurse[0])}")
-		if not (0 <= shift < 4):
-			raise RuntimeError(f"NurseRosteringVariable: shift is {shift} (min 0 max 3)")
+		if not is_valid_shift(shift):
+			raise RuntimeError(f"NurseRosteringVariable: shift is {shift}")
 		return self.nurse[nurse - 1][day - 1][shift]

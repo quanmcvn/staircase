@@ -5,3 +5,6 @@ class ShiftEnum(Enum):
 	EVENING_SHIFT = 1,
 	NIGHT_SHIFT = 2,
 	OFF_DAY = 3,
+ 
+def is_valid_shift(shift: int) -> bool:
+	return any(shift == e.value[0] for e in ShiftEnum)
