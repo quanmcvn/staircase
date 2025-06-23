@@ -18,7 +18,7 @@ from src.encoding.NRP.strategy_nrp_encoding.nrp_encoding_bdd_pypblib import NRP_
 from src.encoding.NRP.strategy_nrp_encoding.nrp_encoding_card_pypblib import NRP_Encoding_Card_Pblib
 from src.encoding.NRP.strategy_nrp_encoding.nrp_encoding_card_pysat import NRP_Encoding_Card_Pysat
 from src.encoding.NRP.strategy_nrp_encoding.nrp_encoding_totalizer_pysat import NRP_Encoding_Totalizer_Pysat
-
+from src.encoding.NRP.strategy_nrp_encoding.nrp_encoding_kmtotalizer_pysat import NRP_Encoding_KMTotalizer_Pysat
 
 class NurseRosteringEncoding:
 	def __init__(self, nrp_config: NurseRosteringConfig):
@@ -35,6 +35,8 @@ class NurseRosteringEncoding:
 			self.encoding_strategy = NRP_Encoding_Card_Pysat()
 		elif self.nrp_config.encoding_type == NRP_Encoding_Strategy_Enum.PYSAT_TOTALIZER:
 			self.encoding_strategy = NRP_Encoding_Totalizer_Pysat()
+		elif self.nrp_config.encoding_type == NRP_Encoding_Strategy_Enum.PYSAT_KMTOTALIZER:
+			self.encoding_strategy = NRP_Encoding_KMTotalizer_Pysat()
 		else:
 			print(f"Encoding strategy is not set: {self.nrp_config.encoding_type}.")
 			print(f"Force stop. Return error code 1.")

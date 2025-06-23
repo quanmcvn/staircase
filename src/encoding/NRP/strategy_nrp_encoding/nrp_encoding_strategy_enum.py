@@ -6,3 +6,4 @@ class NRP_Encoding_Strategy_Enum(Enum):
     PBLIB_CARD = 2,
     PYSAT_CARD = 3,
     PYSAT_TOTALIZER = 4,
+    PYSAT_KMTOTALIZER = 5,
