@@ -108,7 +108,7 @@ def run_nurse_rostering(encoding_strategy: NRP_Encoding_Strategy_Enum, nurse: in
 		ok_time = True
 		if ret == 2560:  # SAT
 			solver_return = 'SAT'
-			test_result(solver_output, nurse, day)
+			# test_result(solver_output, nurse, day)
 		elif ret == 5120:  # UNSAT
 			print("UNSAT")
 			solver_return = 'UNSAT'
@@ -315,7 +315,7 @@ def main():
     #                                                       NRP_Encoding_Strategy_Enum.PBLIB_BDD,
     #                                                       NRP_Encoding_Strategy_Enum.PBLIB_CARD]
     
-	encoding_strategies: list[NRP_Encoding_Strategy_Enum] = [NRP_Encoding_Strategy_Enum.PYSAT_CARD]
+	encoding_strategies: list[NRP_Encoding_Strategy_Enum] = [NRP_Encoding_Strategy_Enum.PYSAT_KMTOTALIZER]
  
 	time_now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 	nks = get_all_number_in_file("input_nurse_rostering.txt")

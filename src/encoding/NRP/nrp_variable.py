@@ -1,5 +1,5 @@
 from src.include.common import AuxVariable
-from src.encoding.NRP.nrp_shift_enum import is_valid_shift
+from src.encoding.NRP.nrp_shift_enum import is_valid_shift, ShiftEnum
 
 class NurseRosteringVariable:
 	def __init__(self, nurses: int, days: int, aux: AuxVariable):
@@ -8,8 +8,7 @@ class NurseRosteringVariable:
 		for _i in range(nurses):
 			nurse_i = []
 			for _j in range(days):
-				# 4 shifts are D (day), E (evening), N (night), O (offday)
-				shifts = [aux.get_new_variable() for _ in range(4)]
+				shifts = [aux.get_new_variable() for _ in range(len(ShiftEnum))]  
 				nurse_i.append(shifts)
 			self.nurse.append(nurse_i)
 

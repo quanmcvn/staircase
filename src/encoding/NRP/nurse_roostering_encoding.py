@@ -41,8 +41,23 @@ class NurseRosteringEncoding:
 			print(f"Encoding strategy is not set: {self.nrp_config.encoding_type}.")
 			print(f"Force stop. Return error code 1.")
 			sys.exit(1)
+		self._init_combined_shifts(nrp_config, self.nrp_variable)
 
-
+	def _init_combined_shifts(self, nrp_config: NurseRosteringConfig, nrp_variable: NurseRosteringVariable):
+		# Initialize combined shift variables
+		self._init_e_n_shifts(nrp_config, nrp_variable)
+		
+	def _init_e_n_shifts(self, nrp_config: NurseRosteringConfig, nrp_variable: NurseRosteringVariable):
+		# Initialize e_n shifts variables
+		for nurse in myrange_inclusive(1, nrp_config.nurses):
+			for day in myrange_inclusive(1, nrp_config.days):
+				e_shift = nrp_variable.get_nurse_days_shift(nurse, day, ShiftEnum.EVENING_SHIFT.value[0])
+				n_shift = nrp_variable.get_nurse_days_shift(nurse, day, ShiftEnum.NIGHT_SHIFT.value[0])
+				e_n_shift = nrp_variable.get_nurse_days_shift(nurse, day, ShiftEnum.E_N_SHIFT.value[0])
+    
+				nrp_config.add_clause.add_list([e_shift, n_shift, not_(e_n_shift)])
+				nrp_config.add_clause.add_list([not_(e_shift), e_n_shift])
+				nrp_config.add_clause.add_list([not_(n_shift), e_n_shift])
 
 	def _encode_at_most_x_s_shifts_per_y_days_using_at_least(self, upper_bound: int, shift: ShiftEnum, days: int):
 		self.encoding_strategy._encode_at_most_x_s_shifts_per_y_days_using_at_least(self.nrp_config, self.nrp_variable, upper_bound, shift, days)
@@ -134,5 +149,5 @@ class NurseRosteringEncoding:
 		# self._encode_at_most_x_s_shifts_per_y_days_binomial(4, ShiftEnum.NIGHT_SHIFT, 14)
 		self._encode_at_most_x_s_shifts_per_y_days_using_at_least(4, ShiftEnum.NIGHT_SHIFT, 14)
 		self._encode_at_least_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 14)
-		self._encode_between_x_and_y_s_shifts_per_z_days(2, 4, ShiftEnum.EVENING_SHIFT, 7)
+		self._encode_between_x_and_y_s_shifts_per_z_days(2, 4, ShiftEnum.E_N_SHIFT, 7)
 		self._encode_at_most_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 2)
