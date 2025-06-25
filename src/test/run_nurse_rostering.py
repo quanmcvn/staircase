@@ -12,6 +12,7 @@ from typing import Any
 from src.encoding.NRP.nurse_roostering_encoding import NurseRosteringEncoding
 from src.encoding.NRP.nrp_config import NurseRosteringConfig
 from src.encoding.NRP.strategy_nrp_encoding.nrp_encoding_strategy_enum import NRP_Encoding_Strategy_Enum
+from src.encoding.NRP.nrp_shift_enum import ShiftEnum
 
 from src.include.addline import write_full
 from src.include.common import AuxVariable, AddClause
@@ -40,6 +41,24 @@ def eval_window(x: str, value: str, window_size: int, floor, cap):
 				return False
 			now -= 1 if x[i - window_size] == value else 0
 		now += 1 if x[i] == value else 0
+	if not (floor <= now <= cap):
+		return False
+	return True
+
+def eval_window_multiple_shifts(x: str, values: list[str], window_size: int, floor: int, cap: int):
+	if len(x) < window_size:
+		return True
+	now = 0
+	if floor is None:
+		floor = 0
+	if cap is None:
+		cap = window_size
+	for i in range(0, len(x)):
+		if i >= window_size:
+			if not (floor <= now <= cap):
+				return False
+			now -= 1 if x[i - window_size] in values else 0
+		now += 1 if x[i] in values else 0
 	if not (floor <= now <= cap):
 		return False
 	return True
@@ -108,7 +127,7 @@ def run_nurse_rostering(encoding_strategy: NRP_Encoding_Strategy_Enum, nurse: in
 		ok_time = True
 		if ret == 2560:  # SAT
 			solver_return = 'SAT'
-			# test_result(solver_output, nurse, day)
+			test_result(solver_output, nurse, day)
 		elif ret == 5120:  # UNSAT
 			print("UNSAT")
 			solver_return = 'UNSAT'
@@ -250,18 +269,22 @@ def parse_result(filename: str, nurse: int, day: int):
 			nurse_day_shift_list = []
 			for k in range(4):
 				nurse_day_shift_list.append(list_int.pop())
+			for k in range(len(ShiftEnum) - 4):
+				list_int.pop() # pop the E_N shift since we don't need it
 			nurse_day_list.append(nurse_day_shift_list)
 		nurse_list.append(nurse_day_list)
 	chosen_list = []
-	num_to_shift = ['D', 'E', 'N', 'O']
+	num_to_shift = ['D', 'E', 'N', 'O'] # E_N is not included in the result, so we only have 4 shifts
 	for i in range(nurse):
 		chosen_nurse_list = []
 		for j in range(day):
 			temp = [k for k in nurse_list[i][j] if k > 0]
 			if len(temp) != 1:
 				raise RuntimeError(f"NOT satisfied 1 shift per day per nurse! {temp}")
-			positive = (temp[0] - 1) % 4
+			positive = (temp[0] - 1) % len(ShiftEnum)
 			chosen_nurse_list.append(num_to_shift[positive])
+			# if (i == 15):
+			# 	print(f"nurse {i} \t day {j} \t nurse_list: {nurse_list[i][j]} \t temp: {temp} - {num_to_shift[positive]}")
 		chosen_list.append(chosen_nurse_list)
 	return chosen_list
 
@@ -291,7 +314,7 @@ def test_result(filename: str, nurse: int, day: int):
 			raise RuntimeError(
 				f"nurse id {nurse_id} failed at self._encode_between_x_and_y_workshifts_per_z_days(16, 18, 28)")
 		# self._encode_at_most_x_s_shifts_per_y_days_binomial(2, ShiftEnum.NIGHT_SHIFT, 7)
-		if not eval_window_upper_bound(nurse_shifts, 'N', 7, 2):
+		if not eval_window_upper_bound(nurse_shifts, 'N', 14, 4):
 			raise RuntimeError(
 				f"nurse id {nurse_id} failed at self._encode_at_most_x_s_shifts_per_y_days_binomial(2, ShiftEnum.NIGHT_SHIFT, 7)")
 		# self._encode_at_least_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 7)
@@ -299,7 +322,7 @@ def test_result(filename: str, nurse: int, day: int):
 			raise RuntimeError(
 				f"nurse id {nurse_id} failed at self._encode_at_least_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 7)")
 		# self._encode_between_x_and_y_s_shifts_per_z_days(2, 4, ShiftEnum.EVENING_SHIFT, 7)
-		if not eval_window(nurse_shifts, 'E', 7, 2, 4):
+		if not eval_window_multiple_shifts(nurse_shifts, ['E', 'N'], 7, 2, 4):
 			raise RuntimeError(
 				f"nurse id {nurse_id} failed at self._encode_between_x_and_y_s_shifts_per_z_days(2, 4, ShiftEnum.EVENING_SHIFT, 7)")
 		# self._encode_at_most_x_s_shifts_per_y_days_binomial(1, ShiftEnum.NIGHT_SHIFT, 2)
@@ -315,7 +338,13 @@ def main():
     #                                                       NRP_Encoding_Strategy_Enum.PBLIB_BDD,
     #                                                       NRP_Encoding_Strategy_Enum.PBLIB_CARD]
     
-	encoding_strategies: list[NRP_Encoding_Strategy_Enum] = [NRP_Encoding_Strategy_Enum.PYSAT_KMTOTALIZER]
+	encoding_strategies: list[NRP_Encoding_Strategy_Enum] = [
+		NRP_Encoding_Strategy_Enum.STAIRCASE,
+		# NRP_Encoding_Strategy_Enum.PBLIB_BDD,
+		# NRP_Encoding_Strategy_Enum.PYSAT_CARD,
+		# NRP_Encoding_Strategy_Enum.PYSAT_KMTOTALIZER,
+	]
+                
  
 	time_now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 	nks = get_all_number_in_file("input_nurse_rostering.txt")
