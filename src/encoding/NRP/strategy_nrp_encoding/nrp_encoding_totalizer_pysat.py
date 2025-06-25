@@ -16,7 +16,6 @@ class NRP_Encoding_Totalizer_Pysat(NRP_Encoding_Strategy):
             for i in myrange_inclusive(1, nrp_config.days - days + 1):
                 var = [(nrp_variable.get_nurse_days_shift(nurse, i + j, shift.value[0]))
                         for j in range(days)]
-                
                 top_id = nrp_config.aux.get_last_used_var()
                 cnf = CardEnc.atmost(lits=var, bound=upper_bound, top_id=top_id, encoding=EncType.totalizer)
                 max_var = max(abs(l) for clause in cnf.clauses for l in clause)

@@ -31,6 +31,7 @@ class NRP_Encoding_Staircase(NRP_Encoding_Strategy):
             encoder = StaircaseEncoding()
             encoder.encode_staircase_at_least(var, days, lower_bound, nrp_config.aux, nrp_config.add_clause)
             del var
+            del encoder
          
          
             

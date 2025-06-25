@@ -108,6 +108,8 @@ class NurseRosteringEncoding:
 				encoder = BinomialEncoding()
 				encoder.encode_at_least_k(var, days - workshifts, self.nrp_config.aux, self.nrp_config.add_clause)
 				del var
+				del encoder
+    
 
 
 
