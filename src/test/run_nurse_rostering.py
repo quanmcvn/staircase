@@ -339,10 +339,11 @@ def main():
     #                                                       NRP_Encoding_Strategy_Enum.PBLIB_CARD]
     
 	encoding_strategies: list[NRP_Encoding_Strategy_Enum] = [
-		NRP_Encoding_Strategy_Enum.STAIRCASE,
-		# NRP_Encoding_Strategy_Enum.PBLIB_BDD,
+		# NRP_Encoding_Strategy_Enum.STAIRCASE,
+		NRP_Encoding_Strategy_Enum.PBLIB_BDD,
 		# NRP_Encoding_Strategy_Enum.PYSAT_CARD,
 		# NRP_Encoding_Strategy_Enum.PYSAT_KMTOTALIZER,
+		# NRP_Encoding_Strategy_Enum.PYSAT_TOTALIZER,
 	]
                 
  
